@@ -78,6 +78,7 @@ int main(void)
   size_t melody_size;
   uint32_t* melody;
   uint32_t* delays;
+  int special_action_id;
 	uint32_t eva_melody[] = {
 	  N_C5, N_DS5, N_F5, N_DS5, N_F5, N_F5, N_F5, N_AS5, N_GS5, N_G5, N_F5, N_G5, 0, N_G5, N_AS5, N_C6, N_F5, N_DS5, N_AS5, N_AS5, N_G5, N_AS5, N_AS5, N_C6, N_C6
 	  };
@@ -133,12 +134,14 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    special_action_id = 0;
 	  int number = KB_Listen();
     if (number == 7) 
     {
       melody = tokyo_ghoul_melody;
       delays = tokyo_ghoul_delays;
       size = sizeof(tokyo_ghoul_melody)/sizeof(tokyo_ghoul_melody[0]);
+      special_action_id = 1000-7;
     }
     else
     {
@@ -150,6 +153,9 @@ int main(void)
 		  oled_Write_Number(i);
 		  HAL_Delay(TIMER_VALUE);
 	  }
+    if (special_action_id == 1000-7)
+      ghul_Action();
+
 	  Buzzer_Play(melody, delays, size);
 	  HAL_Delay(TIMER_VALUE);
   }
