@@ -41,7 +41,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define TIMER_VALUE 1000
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -58,10 +58,9 @@
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-int KB_Test( void );
+int KB_Listen( void );
 void oled_Write_Number(int number);
-void OLED_KB( uint8_t OLED_Keys[]);
-void oled_Reset( void );
+void ghul_Action(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -76,12 +75,27 @@ void oled_Reset( void );
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+  size_t melody_size;
+  uint32_t* melody;
+  uint32_t* delays;
 	uint32_t eva_melody[] = {
-	      N_C5, N_DS5, N_F5, N_DS5, N_F5, N_F5, N_F5, N_AS5, N_GS5, N_G5, N_F5, N_G5, 0, N_G5, N_AS5, N_C6, N_F5, N_DS5, N_AS5, N_AS5, N_G5, N_AS5, N_AS5, N_C6, N_C6
+	  N_C5, N_DS5, N_F5, N_DS5, N_F5, N_F5, N_F5, N_AS5, N_GS5, N_G5, N_F5, N_G5, 0, N_G5, N_AS5, N_C6, N_F5, N_DS5, N_AS5, N_AS5, N_G5, N_AS5, N_AS5, N_C6, N_C6
 	  };
-	  uint32_t eva_delays[] = {
-	      4, 4, 16/3, 16/3, 8, 8, 8, 8, 8, 16, 8, 16/3, 8, 4, 4, 16/3, 16/3, 8, 8, 8, 8, 8, 16/3, 16, 4
-	  };
+	uint32_t eva_delays[] = {
+	  4, 4, 16/3, 16/3, 8, 8, 8, 8, 8, 16, 8, 16/3, 8, 4, 4, 16/3, 16/3, 8, 8, 8, 8, 8, 16/3, 16, 4
+	};
+  uint32_t tokyo_ghoul_melody[] = {
+    N_AS5, N_C6, N_AS5, N_A5, N_G5, N_C6, N_AS5, N_A5, N_G5, N_G5, N_F5, N_DS5, N_DS5, N_F5, N_D5, N_D5, 0, N_D5, N_D5, N_D5, N_D5, N_D6, N_D6, N_C5, N_AS4, N_C5, N_AS4, N_C5, N_AS5, N_A5, N_A5, N_A5, N_AS5, N_AS5
+    };
+  uint32_t tokyo_ghoul_delays[] = {
+    8,     4,   4,      8,    4,    4,    4,    4,     4,    8,   8/3,    8,    4,     8,    8,   4/3, 8,   8,    4,    8,    4,    8,    4,    4,    8,      4,    8,    8,    8,    4,      8,    4,    8,    4
+  };
+  uint32_t tokyo_ghoul_melody2[] = {
+    N_AS5, N_C6, N_AS5, N_A5, N_G5, N_C6, N_AS5, N_A5, N_G5, N_G5, N_F5, N_DS5, N_DS5, N_F5, N_D5, N_D5, 0, N_D5, N_D5, N_D5, N_D5, N_D6, N_D6,  0, N_AS5, N_A5, N_A5, N_A5, N_AS5, N_AS5
+  };
+  uint32_t tokyo_ghoul_delays2[] = {
+    8,     4,   4,      8,    4,    4,    4,    4,     4,    8,   8/3,    8,    4,     8,    8,   4/3, 8,   8,    4,    8,    4,    8,    2,   8/5  8,    4,      8,    4,    8,    4
+  };
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -119,13 +133,25 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  int number = KB_Test();
+	  int number = KB_Listen();
+    if (number == 7) 
+    {
+      melody = tokyo_ghoul_melody;
+      delays = tokyo_ghoul_delays;
+      size = sizeof(tokyo_ghoul_melody)/sizeof(tokyo_ghoul_melody[0]);
+    }
+    else
+    {
+      melody = eva_melody;
+      delays = eva_delays;
+      size = sizeof(eva_melody)/sizeof(eva_melody[0]);
+    }
 	  for (int i=number; i>=0; i--) {
 		  oled_Write_Number(i);
-		  HAL_Delay(1000);
+		  HAL_Delay(TIMER_VALUE);
 	  }
-	  Buzzer_Play(eva_melody, eva_delays, sizeof(eva_melody) / sizeof(uint32_t));
-	  HAL_Delay(1000);
+	  Buzzer_Play(melody, delays, size);
+	  HAL_Delay(TIMER_VALUE);
   }
   /* USER CODE END 3 */
 }
@@ -173,11 +199,10 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-int KB_Test( void ) {
-	UART_Transmit( (uint8_t*)"KB test start\n" );
-	uint8_t Key, ROW[4] = {ROW1, ROW2, ROW3, ROW4}, OLED_Keys[12] = {0x30,0x30,0x30,0x30,0x30,0x30,0x30,0x30,0x30,0x30,0x30,0x30};
-	oled_Reset();
-	oled_WriteString("Enter your time", Font_7x10, White);
+int KB_Listen( void ) {
+	UART_Transmit( (uint8_t*)"Start listening keyboard\n" );
+	uint8_t Key, ROW[4] = {ROW1, ROW2, ROW3, ROW4};
+	oled_WriteString("Enter your time:", Font_7x10, White);
 	int number = 0;
 	while( 1 ) {
 		number %= 1000;
@@ -199,35 +224,37 @@ int KB_Test( void ) {
 				number*=10;
 				number += 1+i*3;
 			}
-			HAL_Delay(25);
+			HAL_Delay(50);
 		}
 		Key = Check_Row( ROW[3] );
 		if (Key == 0x01) {
-			UART_Transmit( (uint8_t*)"Right pressed\n" );
+			UART_Transmit( (uint8_t*)"Last row right pressed. Keyboard was disactivated\n" );
 			return number;
 		} else if ( Key == 0x02) {
-			UART_Transmit( (uint8_t*)"Center pressed\n" );
+			UART_Transmit( (uint8_t*)"Last row center pressed\n" );
 			number*=10;
 		} else if ( Key == 0x04) {
-			UART_Transmit( (uint8_t*)"Left pressed\n" );
+			UART_Transmit( (uint8_t*)"Last row left pressed\n" );
 			number = 0;
 		}
 
 	}
-	UART_Transmit( (uint8_t*)"KB test complete\n");
 }
-void oled_Reset( void ) {
-	oled_Fill(Black);
-	oled_SetCursor(0, 0);
-	oled_UpdateScreen();
-}
+
 void oled_Write_Number(int number)
 {
+  number%=1000;
 	oled_SetCursor(56, 20);
 	oled_WriteChar(0x30+(number/100)%10, Font_7x10, White);
 	oled_WriteChar(0x30+(number%100)/10, Font_7x10, White);
 	oled_WriteChar(0x30+number%10, Font_7x10, White);
 	oled_UpdateScreen();
+}
+
+void ghul_Action(void)
+{
+  oled_SetCursor(56, 20);
+	oled_WriteString("1000-7", Font_7x10, White);
 }
 /* USER CODE END 4 */
 
