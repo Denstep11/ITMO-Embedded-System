@@ -140,14 +140,14 @@ int main(void)
     {
       melody = tokyo_ghoul_melody;
       delays = tokyo_ghoul_delays;
-      size = sizeof(tokyo_ghoul_melody)/sizeof(tokyo_ghoul_melody[0]);
+      melody_size = sizeof(tokyo_ghoul_melody)/sizeof(tokyo_ghoul_melody[0]);
       special_action_id = 1000-7;
     }
     else
     {
       melody = eva_melody;
       delays = eva_delays;
-      size = sizeof(eva_melody)/sizeof(eva_melody[0]);
+      melody_size = sizeof(eva_melody)/sizeof(eva_melody[0]);
     }
 	  for (int i=number; i>=0; i--) {
 		  oled_Write_Number(i);
@@ -156,7 +156,7 @@ int main(void)
     if (special_action_id == 1000-7)
       ghul_Action();
 
-	  Buzzer_Play(melody, delays, size);
+	  Buzzer_Play(melody, delays, melody_size);
 	  HAL_Delay(TIMER_VALUE);
   }
   /* USER CODE END 3 */
