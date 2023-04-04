@@ -61,6 +61,7 @@ void SystemClock_Config(void);
 int KB_Listen( void );
 void oled_Write_Number(int number);
 void ghul_Action(void);
+void oled_Reset(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -206,6 +207,7 @@ void SystemClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 int KB_Listen( void ) {
+	oled_Reset();
 	UART_Transmit( (uint8_t*)"Start listening keyboard\n" );
 	uint8_t Key, ROW[4] = {ROW1, ROW2, ROW3, ROW4};
 	oled_WriteString("Enter your time:", Font_7x10, White);
@@ -230,7 +232,6 @@ int KB_Listen( void ) {
 				number*=10;
 				number += 1+i*3;
 			}
-			HAL_Delay(50);
 		}
 		Key = Check_Row( ROW[3] );
 		if (Key == 0x01) {
@@ -243,7 +244,7 @@ int KB_Listen( void ) {
 			UART_Transmit( (uint8_t*)"Last row left pressed\n" );
 			number = 0;
 		}
-
+		HAL_Delay(50);
 	}
 }
 
@@ -261,6 +262,12 @@ void ghul_Action(void)
 {
   oled_SetCursor(56, 20);
 	oled_WriteString("1000-7", Font_7x10, White);
+	oled_UpdateScreen();
+}
+void oled_Reset(void) {
+	oled_Fill(Black);
+	oled_SetCursor(0, 0);
+	oled_UpdateScreen();
 }
 /* USER CODE END 4 */
 
